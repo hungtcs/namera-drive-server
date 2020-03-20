@@ -1,0 +1,14 @@
+
+jwt:
+  secret: hungpass
+  signOptions:
+    expiresIn: 1h
+
+typeorm:
+  host: 127.0.0.1
+  port: 3306
+  logging: true
+  database: namera_drive
+  username: namera_drive
+  password: namera_drive
+  synchronize: true

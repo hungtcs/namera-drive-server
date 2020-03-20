@@ -1,4 +1,39 @@
 {
+  "monorepo": true,
   "collection": "@nestjs/schematics",
-  "sourceRoot": "src"
+
+  "root": "apps/namera-drive-server",
+  "sourceRoot": "apps/namera-drive-server/src",
+  "compilerOptions": {
+    "assets": [
+      { "include": "assets/config.yaml", "watchAssets": true }
+    ],
+    "webpack": true,
+    "tsConfigPath": "apps/namera-drive-server/tsconfig.json"
+  },
+  "generateOptions": {
+    "spec": false
+  },
+
+  "projects": {
+    "namera-drive-server": {
+      "type": "application",
+      "root": "apps/namera-drive-server",
+      "entryFile": "main",
+      "sourceRoot": "apps/namera-drive-server/src",
+      "compilerOptions": {
+        "assets": [
+          {
+            "include": "assets/config.yaml",
+            "watchAssets": true
+          }
+        ],
+        "webpack": true,
+        "tsConfigPath": "apps/namera-drive-server/tsconfig.json"
+      },
+      "generateOptions": {
+        "spec": false
+      }
+    }
+  }
 }
