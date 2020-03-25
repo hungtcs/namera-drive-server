@@ -5,8 +5,25 @@ import { plainToClass } from 'class-transformer';
 import { JwtModuleOptions } from '@nestjs/jwt';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
+export interface MinioStorageEngineOptions {
+  type: 'minio';
+  username: string;
+  password: string;
+}
+export interface LocalStorageEngineOptions {
+  type: 'local';
+  root: string;
+}
+
+export interface StorageOptions<T = MinioStorageEngineOptions | LocalStorageEngineOptions> {
+  engine: T;
+  trashPath: string;
+  uploadPath: string;
+}
+
 export class Config {
   jwt: JwtModuleOptions;
+  storage: StorageOptions;
   typeorm: TypeOrmModuleOptions;
 }
 

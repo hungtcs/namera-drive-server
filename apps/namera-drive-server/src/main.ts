@@ -1,7 +1,9 @@
+import cookieParser from 'cookie-parser';
+import { AppModule } from './app/app.module';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { LoggerService } from '@shared/logger/public_api';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 const options = new DocumentBuilder()
   .setTitle('Namera Drive Service')
@@ -14,17 +16,23 @@ const options = new DocumentBuilder()
 
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['warn', 'error', 'log', 'debug', 'verbose'],
+  });
 
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('swagger', app, document);
 
+  app.use(cookieParser());
+
   app.useGlobalPipes(new ValidationPipe({
     transform: true,
-    whitelist: true,
+    whitelist: false,
   }));
 
   app.setGlobalPrefix('/api');
+
+  app.useLogger(new LoggerService());
 
   await app.listen(3000);
 }

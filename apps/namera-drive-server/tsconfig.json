@@ -5,11 +5,41 @@
     "declaration": false,
     "outDir": "../../dist/apps/namera-drive-server",
     "paths": {
+      "@auth": [
+        "src/app/auth/public_api"
+      ],
+      "@auth/*": [
+        "src/app/auth/*"
+      ],
+      "@user": [
+        "src/app/user/public_api"
+      ],
+      "@user/*": [
+        "src/app/user/*"
+      ],
+      "@drive": [
+        "src/app/drive/public_api"
+      ],
+      "@drive/*": [
+        "src/app/drive/*"
+      ],
+      "@multer-storage": [
+        "src/app/multer-storage/public_api"
+      ],
+      "@multer-storage/*": [
+        "src/app/multer-storage/*"
+      ],
+      "@storage-engine": [
+        "src/app/storage-engine/public_api"
+      ],
+      "@storage-engine/*": [
+        "src/app/storage-engine/*"
+      ],
       "@shared": [
-        "src/shared/public_api"
+        "src/app/shared/public_api"
       ],
       "@shared/*": [
-        "src/shared/*"
+        "src/app/shared/*"
       ]
     }
   },

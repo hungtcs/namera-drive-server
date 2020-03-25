@@ -1,8 +1,7 @@
-
 jwt:
   secret: hungpass
   signOptions:
-    expiresIn: 1h
+    expiresIn: 7days
 
 typeorm:
   host: 127.0.0.1
@@ -12,3 +11,13 @@ typeorm:
   username: namera_drive
   password: namera_drive
   synchronize: true
+
+storage:
+  engine:
+    type: local
+    root: /home/hungtcs/Temp/NameraDriveRoot
+    # type: minio
+    # username: minio
+    # password: minio
+  trashPath: .namera/trash
+  uploadPath: .namera/upload
