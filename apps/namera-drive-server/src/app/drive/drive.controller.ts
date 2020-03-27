@@ -1,4 +1,3 @@
-import { User, Base64Param } from '@shared';
 import { Response } from 'express';
 import { FileStat } from '@storage-engine';
 import { MulterFile } from '../multer-storage/public_api';
@@ -7,8 +6,9 @@ import { JwtAuthGuard } from '@auth';
 import { DriveService } from './drive.service';
 import { FileUploadDTO } from '@multer-storage';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { User, Base64Param } from '@shared';
 import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiConsumes } from '@nestjs/swagger';
-import { Controller, UseGuards, UseInterceptors, ClassSerializerInterceptor, Post, Param, Get, NotFoundException, ConflictException, UploadedFiles, Delete, Query, ForbiddenException, Res, Put } from '@nestjs/common';
+import { Controller, UseGuards, UseInterceptors, ClassSerializerInterceptor, Post, Param, Get, NotFoundException, ConflictException, UploadedFiles, Delete, Query, ForbiddenException, Res, Put, Body, HttpStatus, HttpCode } from '@nestjs/common';
 
 @ApiTags('Drive')
 @Controller('drive')
@@ -80,7 +80,8 @@ export class DriveController {
       const readStream = await this.driveService.downloadFile(user, filepath);
       response.setHeader('Content-Type', fileStat.mimeType);
       response.setHeader('Content-Length', fileStat.size);
-      response.setHeader('Content-Disposition', `attachment; filename="${ encodeURIComponent(fileStat.name) }"`);
+      // response.setHeader('Content-Disposition', `attachment; filename="${ encodeURIComponent(fileStat.name) }"`);
+      response.setHeader('Content-Disposition', `inline; filename="${ encodeURIComponent(fileStat.name) }"`);
       readStream.pipe(response);
     }
   }
@@ -111,6 +112,15 @@ export class DriveController {
     }
   }
 
+  @Post('delete-multiple')
+  @ApiOperation({ summary: '删除多个文件，直接从硬盘删除' })
+  @ApiBody({ type: String, isArray: true })
+  public async deleteFiles(
+      @User() user: UserEntity,
+      @Body() filepaths: Array<string>) {
+    return await this.driveService.deleteFiles(user, filepaths, true, true);
+  }
+
   @Delete('remove/:filename')
   @ApiOperation({ summary: '移除文件，移动文件到回收站' })
   public async removeFile(
@@ -120,6 +130,14 @@ export class DriveController {
       throw new NotFoundException(`file (${ filename }) not exists`);
     }
     return this.driveService.removeFile(user, filename);
+  }
+
+  @Post('remove-multiple')
+  @ApiOperation({ summary: '移除文件，移动文件到回收站' })
+  public async removeFiles(
+      @User() user: UserEntity,
+      @Body() filepaths: Array<string>) {
+    return await this.driveService.removeFiles(user, filepaths);
   }
 
   @Put('restore/:trashId')

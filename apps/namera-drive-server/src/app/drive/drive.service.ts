@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
-import crypto from 'crypto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserEntity } from '@user';
 import { StorageEngine, FileStat } from '@storage-engine';
@@ -21,7 +20,8 @@ export class DriveService {
   }
 
   public async getFiles(user: UserEntity, dirpath: string) {
-    return await this.storageEngine.list(user, dirpath);
+    const files = await this.storageEngine.list(user, dirpath);
+    return files.filter(file => !file.name.startsWith('.'));
   }
 
   public async getFileStat(user: UserEntity, filepath: string) {
@@ -70,12 +70,29 @@ export class DriveService {
     }
   }
 
+  public async deleteFiles(user: UserEntity, filepaths: Array<string>,
+      recursive: boolean = false,
+      ignoreIfNotExists: boolean = false) {
+    return await Promise.all(
+      filepaths.map(async filepath => {
+        if(await this.isFileExists(user, filepath)) {
+          return await this.storageEngine.deleteFile(user, filepath, recursive);
+        } else {
+          if(!ignoreIfNotExists) {
+            throw new NotFoundException(`file(${ filepath }) not found`);
+          } else {
+            return await Promise.resolve(null);
+          }
+        }
+      }),
+    );
+  }
+
   public async removeFile(user: UserEntity, filepath: string) {
     const trashPath = this.configService.get<string>(`storage.trashPath`);
     if(!await this.storageEngine.exists(user, trashPath)) {
       await this.storageEngine.mkdir(user, trashPath, true);
     }
-
     const fileStat = await this.storageEngine.stat(user, filepath);
     const filename = FileUtils.generateRandomFilename();
     const trashInfo = new TrashInfo({
@@ -89,6 +106,10 @@ export class DriveService {
       fs.ReadStream.from(yaml.stringify(classToPlain(trashInfo))),
     );
     return await this.storageEngine.moveFile(user, filepath, path.join(trashPath, filename));
+  }
+
+  public async removeFiles(user: UserEntity, filepaths: Array<string>) {
+    return await Promise.all(filepaths.map(filepath => this.removeFile(user, filepath)));
   }
 
   public async restoreTrash(user: UserEntity, trashId: string) {

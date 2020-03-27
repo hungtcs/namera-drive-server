@@ -1,9 +1,9 @@
 import { UserEntity } from './user.entity';
 import { Injectable } from '@nestjs/common';
+import { StorageEngine } from '@storage-engine';
 import { UserProfileEntity } from './user-profile.entity';
 import { Repository, EntityManager } from 'typeorm';
 import { InjectRepository, InjectEntityManager } from '@nestjs/typeorm';
-import { StorageEngine } from '@storage-engine';
 
 @Injectable()
 export class UserService {
@@ -12,7 +12,7 @@ export class UserService {
       private readonly storageEngine: StorageEngine,
       @InjectEntityManager() private readonly entityManager: EntityManager,
       @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
-      @InjectRepository(UserProfileEntity) private readonly userProfileRepository: Repository<UserProfileEntity>,) {
+      @InjectRepository(UserProfileEntity) private readonly userProfileRepository: Repository<UserProfileEntity>) {
 
   }
 

@@ -33,6 +33,7 @@ export class LocalMulterStorage extends MulterStorage {
       mimetype: file.mimetype,
       filename: filename,
       encoding: file.encoding,
+      modifyTime: fileStat.modifyTime,
       originalname: file.originalname,
     });
   }

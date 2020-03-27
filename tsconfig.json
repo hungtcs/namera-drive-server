@@ -12,11 +12,8 @@
     "baseUrl": "./",
     "incremental": true,
     "paths": {
-      "@app/test": [
-        "libs/test/src"
-      ],
-      "@app/test/*": [
-        "libs/test/src/*"
+      "@namera-drive-server": [
+        "apps/namera-drive-server/src/public_api"
       ]
     }
   },

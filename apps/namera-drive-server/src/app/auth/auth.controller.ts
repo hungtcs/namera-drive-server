@@ -8,6 +8,7 @@ import { ApiOperation, ApiTags, ApiBody } from '@nestjs/swagger';
 import { Controller, Post, UseInterceptors, ClassSerializerInterceptor, Put, Body, ConflictException, Res, HttpStatus, UseGuards } from '@nestjs/common';
 import { LocalAuthGuard } from './local-auth.guard';
 import { SignInEntity } from './sign-in.entity';
+import moment from 'moment';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -45,7 +46,7 @@ export class AuthController {
       @Res() response: Response,
       @User() user: UserEntity) {
     const token = await this.authService.signToken(user);
-    response.cookie('token', token);
+    response.cookie('token', token, { expires: moment().add(7, 'days').toDate() });
     response.status(HttpStatus.OK);
     response.send({
       token,
