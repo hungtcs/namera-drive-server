@@ -35,12 +35,6 @@ export abstract class StorageEngine {
 
   public abstract async moveFiles(user: UserEntity, sourceFiles: Array<string>, targetDirectory: string): Promise<Array<FileStat>>;
 
-  // public abstract async listFiles(user: UserEntity, path: string);
-
-  // public abstract async readFile(user: UserEntity, path: string);
-
-  // public abstract async writeFile(user: UserEntity, path: string, stream: ReadableStream);
-
-  // public abstract async mkdir(user: UserEntity, directory: string);
+  public abstract async getAbsolutePath(user: UserEntity, filepath: string): Promise<string>;
 
 }

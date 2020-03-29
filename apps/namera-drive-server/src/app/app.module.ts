@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from '@auth';
 import { UserModule } from '@user';
 import { DriveModule } from '@drive';
+import { MediaModule } from './media/media.module';
 import { LoggerModule } from '@shared/logger/public_api';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerOptions } from 'typeorm/logger/LoggerOptions';
@@ -15,6 +16,7 @@ import { AllExceptionsFilter } from '@shared';
     AuthModule,
     UserModule,
     DriveModule,
+    MediaModule,
     LoggerModule,
     ConfigModule.forRoot({
       load: [config],

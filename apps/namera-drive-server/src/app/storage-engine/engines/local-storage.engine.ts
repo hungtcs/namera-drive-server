@@ -110,6 +110,10 @@ export class LocalStorageEngine extends StorageEngine {
     return await Promise.all(tasks);
   }
 
+  public async getAbsolutePath(user: UserEntity, filepath: string): Promise<string> {
+    return this.getUserFilePath(user, filepath);
+  }
+
   private getUserFileRoot(user: UserEntity) {
     return path.join(this.storageFilesRoot, user.username);
   }
