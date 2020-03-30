@@ -1,6 +1,6 @@
 import { DateUtils } from "@shared";
 import { Transform } from "class-transformer";
-import { FileType } from "@storage-engine";
+import { FileType } from "src/app/storage/public_api";
 
 export class TrashInfo {
 
@@ -22,10 +22,6 @@ export class TrashInfo {
 
   public isDirectory() {
     return this.fileType === FileType.DIRECTORY;
-  }
-
-  public isSymbolicLink() {
-    return this.fileType === FileType.SYMBOLIC_LINK;
   }
 
 }

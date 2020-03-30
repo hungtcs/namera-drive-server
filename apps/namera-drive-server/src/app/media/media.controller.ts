@@ -1,9 +1,13 @@
 import fs from 'fs';
+import md5 from 'md5';
+import path from 'path';
 import { Response } from 'express';
-import { JwtAuthGuard } from '@auth';
-import { User, Base64Param } from '@shared';
 import { UserEntity } from '@user';
-import { StorageEngine } from '@storage-engine';
+import { JwtAuthGuard } from '@auth';
+import { LocalStorage } from 'src/app/storage/public_api';
+import { ConfigService } from '@nestjs/config';
+import { StorageOptions } from 'src/config';
+import { User, Base64Param } from '@shared';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Controller, UseInterceptors, ClassSerializerInterceptor, UseGuards, Get, NotFoundException, Res, ForbiddenException, Headers, HttpStatus } from '@nestjs/common';
 
@@ -15,7 +19,8 @@ import { Controller, UseInterceptors, ClassSerializerInterceptor, UseGuards, Get
 export class MediaController {
 
   constructor(
-      private readonly storageEngine: StorageEngine,) {
+      private readonly config: ConfigService,
+      private readonly storage: LocalStorage,) {
 
   }
 
@@ -25,10 +30,10 @@ export class MediaController {
       @User() user: UserEntity,
       @Headers('range') range: string,
       @Base64Param('videopath') videopath: string) {
-    if(!await this.storageEngine.exists(user, videopath)) {
+    if(!await this.storage.exists(user, videopath)) {
       throw new NotFoundException();
     }
-    const stat = await this.storageEngine.stat(user, videopath);
+    const stat = await this.storage.stat(user, videopath);
     if(!stat.isFile()) {
       throw new ForbiddenException('not a file');
     }
@@ -43,7 +48,7 @@ export class MediaController {
         'Accept-Ranges': 'bytes',
         'Content-Length': chunksize,
       }
-      const fullpath = await this.storageEngine.getAbsolutePath(user, videopath);
+      const fullpath = await this.storage.getAbsolutePath(user, videopath);
       const readStream = fs.createReadStream(fullpath, { start, end });
       response.writeHead(HttpStatus.PARTIAL_CONTENT, headers);
       readStream.on('open', () => readStream.pipe(response))
@@ -53,11 +58,31 @@ export class MediaController {
         'Content-Type': stat.mimeType,
         'Content-Length': stat.size,
       }
-      const fullpath = await this.storageEngine.getAbsolutePath(user, videopath);
+      const fullpath = await this.storage.getAbsolutePath(user, videopath);
       const readStream = fs.createReadStream(fullpath);
       response.writeHead(HttpStatus.PARTIAL_CONTENT, headers);
       readStream.on('open', () => readStream.pipe(response))
         .on('error', err => response.end(err));
+    }
+  }
+
+  @Get('thumbnail/:filepath')
+  public async getThumbnail(
+      @Res() response: Response,
+      @User() user: UserEntity,
+      @Base64Param('filepath') filepath: string) {
+    const { thumbnailsPath } = this.config.get<StorageOptions>('storage');
+    const thumbnailFilePath = path.join(thumbnailsPath, `${ md5(filepath) }.png`);
+    if(!await this.storage.exists(user, thumbnailFilePath)) {
+      response.sendFile(path.join(__dirname, 'assets/thumbnails/default.png'));
+    } else {
+      const stat = await this.storage.stat(user, thumbnailFilePath);
+      const stream = await this.storage.readFile(user, thumbnailFilePath);
+      response.writeHead(HttpStatus.OK, {
+        'Content-Type': stat.mimeType,
+        'Content-Length': stat.size,
+      });
+      stream.pipe(response);
     }
   }
 

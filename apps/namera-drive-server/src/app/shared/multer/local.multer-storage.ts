@@ -1,18 +1,22 @@
 import path from 'path';
 import { Request } from 'express';
-import { UserEntity } from '@user';
-import { Injectable } from '@nestjs/common';
-import { LocalStorageEngine } from '@storage-engine';
-import { MulterStorage, MulterFile } from './multer-storage';
 import { FileUtils } from '@shared';
+import { UserEntity } from '@user';
+import { MulterFile } from './multer-file';
+import { LocalStorage } from 'src/app/storage/public_api';
+import { StorageOptions } from 'src/config';
 
-@Injectable()
-export class LocalMulterStorage extends MulterStorage {
-  protected storageEngine: LocalStorageEngine;
+export class LocalMulterStorage {
+
+  constructor(
+      private readonly options: StorageOptions,
+      private readonly storageEngine: LocalStorage) {
+
+  }
 
   public async _handleFile(request: Request, file: MulterFile, callback: Function) {
     const user = request.user as UserEntity;
-    const uploadPath = this.options.storageOptions.uploadPath;
+    const uploadPath = this.options.uploadPath;
     const exists = await this.storageEngine.exists(user, uploadPath);
     if(!exists) {
       await this.storageEngine.mkdir(user, uploadPath, true);

@@ -1,20 +1,13 @@
 import { Module } from '@nestjs/common';
+import { MulterModule } from '@shared';
 import { DriveService } from './drive.service';
-import { MulterModule } from '@nestjs/platform-express';
 import { DriveController } from './drive.controller';
-import { StorageEngineModule } from '@storage-engine';
-import { MulterStorage, MulterStorageModule } from '@multer-storage';
+import { StorageModule } from 'src/app/storage/public_api';
 
 @Module({
   imports: [
-    StorageEngineModule,
-    MulterModule.registerAsync({
-      inject: [MulterStorage],
-      imports: [MulterStorageModule],
-      useFactory: (storage: MulterStorage) => {
-        return { storage };
-      },
-    }),
+    MulterModule,
+    StorageModule,
   ],
   providers: [
     DriveService,

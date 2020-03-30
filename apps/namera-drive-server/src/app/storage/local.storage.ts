@@ -2,27 +2,30 @@ import fs from 'fs';
 import path from 'path';
 import rimraf from 'rimraf'
 import mimeTypes from 'mime-types';
-import { FileStat } from '../entities/public_api';
-import { FileType } from '../enums/public_api';
+import { Readable } from 'stream';
+import { FileStat } from './entities/public_api';
+import { FileType } from './enums/public_api';
 import { promisify } from 'util';
 import { UserEntity } from '@user';
 import { Injectable } from '@nestjs/common';
-import { StorageEngine } from './storage.engine';
-import { StorageOptions, LocalStorageEngineOptions } from 'src/config';
-import { InvalidFilepathException } from '@storage-engine/exceptions/public_api';
+import { ConfigService } from '@nestjs/config';
+import { StorageOptions } from 'src/config';
+import { InvalidFilepathException } from 'src/app/storage/exceptions/public_api';
 
 @Injectable()
-export class LocalStorageEngine extends StorageEngine {
+export class LocalStorage {
+
+  constructor(
+    private readonly configService: ConfigService) {
+
+  }
 
   private get storageOptions() {
-    return this.configService.get<StorageOptions<LocalStorageEngineOptions>>('storage');
+    return this.configService.get<StorageOptions>('storage');
   }
 
   private get storageRoot() {
-    return this.storageOptions.engine.root;
-  }
-  private get storageFilesRoot() {
-    return path.join(this.storageRoot, 'files');
+    return this.storageOptions.root;
   }
 
   public async initUser(user: UserEntity): Promise<void> {
@@ -44,12 +47,9 @@ export class LocalStorageEngine extends StorageEngine {
       fullpath: filepath,
       size: stat.size,
       type: stat.isFile() ? FileType.FILE :
-              (stat.isDirectory() ? FileType.DIRECTORY :
-                (stat.isSymbolicLink() ? FileType.SYMBOLIC_LINK :
-                  FileType.UNKNOW)),
+              (stat.isDirectory() ? FileType.DIRECTORY : FileType.UNKNOW),
       mimeType: stat.isDirectory() ? 'inode/directory' :
-                  (stat.isSymbolicLink() ? 'inode/symlink' :
-                    (mimeTypes.lookup(filepath) || 'application/octet-stream')),
+                  (mimeTypes.lookup(filepath) || 'application/octet-stream'),
       modifyTime: stat.mtime,
     });
   }
@@ -67,7 +67,7 @@ export class LocalStorageEngine extends StorageEngine {
     return fs.createReadStream(this.getUserFilePath(user, filepath));
   }
 
-  public async writeFile(user: UserEntity, filepath: string, stream: fs.ReadStream): Promise<FileStat> {
+  public async writeFile(user: UserEntity, filepath: string, stream: Readable): Promise<FileStat> {
     const writeStream = fs.createWriteStream(this.getUserFilePath(user, filepath));
     stream.pipe(writeStream);
     await new Promise((resolve, reject) => {
@@ -86,7 +86,7 @@ export class LocalStorageEngine extends StorageEngine {
     if(recursive) {
       await promisify(rimraf)(this.getUserFilePath(user, filepath));
     } else {
-      if(fileStat.isFile() || fileStat.isSymbolicLink()) {
+      if(fileStat.isFile()) {
         await promisify(fs.unlink)(this.getUserFilePath(user, filepath));
       } else if(fileStat.isDirectory) {
         await promisify(fs.rmdir)(this.getUserFilePath(user, filepath));
@@ -114,17 +114,18 @@ export class LocalStorageEngine extends StorageEngine {
     return this.getUserFilePath(user, filepath);
   }
 
-  private getUserFileRoot(user: UserEntity) {
-    return path.join(this.storageFilesRoot, user.username);
+
+  public getUserFileRoot(user: UserEntity) {
+    return path.join(this.storageRoot, 'files', user.username);
   }
 
   public getUserFilePath(user: UserEntity, ...filepath: Array<string>) {
     const userFileRoot = this.getUserFileRoot(user);
-    const relativePath = path.relative(userFileRoot, path.join(this.getUserFileRoot(user), ...filepath));
-    if(relativePath.startsWith('../')) {
+    const relativePath = path.relative(userFileRoot, path.join(userFileRoot, ...filepath));
+    if(relativePath.startsWith('..')) {
       throw new InvalidFilepathException();
     }
-    return path.join(this.getUserFileRoot(user), ...filepath);
+    return path.join(userFileRoot, ...filepath);
   }
 
 }

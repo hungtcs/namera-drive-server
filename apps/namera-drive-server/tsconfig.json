@@ -23,17 +23,11 @@
       "@drive/*": [
         "src/app/drive/*"
       ],
-      "@multer-storage": [
-        "src/app/multer-storage/public_api"
+      "@storage": [
+        "src/app/storage/public_api"
       ],
-      "@multer-storage/*": [
-        "src/app/multer-storage/*"
-      ],
-      "@storage-engine": [
-        "src/app/storage-engine/public_api"
-      ],
-      "@storage-engine/*": [
-        "src/app/storage-engine/*"
+      "@storage/*": [
+        "src/app/storage/*"
       ],
       "@shared": [
         "src/app/shared/public_api"

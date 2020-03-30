@@ -1,14 +1,13 @@
 import { Response } from 'express';
-import { FileStat } from '@storage-engine';
-import { MulterFile } from '../multer-storage/public_api';
+import { FileStat } from '@storage';
 import { UserEntity } from '@user';
 import { JwtAuthGuard } from '@auth';
 import { DriveService } from './drive.service';
-import { FileUploadDTO } from '@multer-storage';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { User, Base64Param } from '@shared';
+import { User, Base64Param, FileUploadDTO, MulterFile } from '@shared';
 import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiConsumes } from '@nestjs/swagger';
-import { Controller, UseGuards, UseInterceptors, ClassSerializerInterceptor, Post, Param, Get, NotFoundException, ConflictException, UploadedFiles, Delete, Query, ForbiddenException, Res, Put, Body, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, UseGuards, UseInterceptors, ClassSerializerInterceptor, Post, Param, Get, UploadedFiles, Delete, Query, ForbiddenException, Res, Put, Body, HttpStatus, HttpCode } from '@nestjs/common';
+import { PathExistsPipe } from '@shared/pipes/public_api';
 
 @ApiTags('Drive')
 @Controller('drive')
@@ -18,7 +17,7 @@ import { Controller, UseGuards, UseInterceptors, ClassSerializerInterceptor, Pos
 export class DriveController {
 
   constructor(
-      private readonly driveService: DriveService) {
+      private readonly driveService: DriveService,) {
 
   }
 
@@ -26,12 +25,9 @@ export class DriveController {
   @ApiOperation({ summary: '获取下级文件列表' })
   public async getFiles(
       @User() user: UserEntity,
-      @Base64Param('dirpath') dirpath: string) {
-    if(!await this.driveService.isFileExists(user, dirpath)) {
-      throw new NotFoundException();
-    }
+      @Base64Param('dirpath', PathExistsPipe) dirpath: string) {
     const stat = await this.driveService.getFileStat(user, dirpath);
-    if(stat.isFile() || stat.isSymbolicLink()) {
+    if(stat.isFile()) {
       throw new ForbiddenException(`(${ dirpath }) is not a directory`);
     }
     return await this.driveService.getFiles(user, dirpath);
@@ -42,13 +38,8 @@ export class DriveController {
   @ApiOperation({ summary: '获取文件信息' })
   public async getFileState(
       @User() user: UserEntity,
-      @Base64Param('filepath') filepath: string) {
-    const exists = await this.driveService.isFileExists(user, filepath);
-    if(!exists) {
-      throw new NotFoundException('file not exists');
-    } else {
-      return await this.driveService.getFileStat(user, filepath);
-    }
+      @Base64Param('filepath', PathExistsPipe) filepath: string) {
+    return await this.driveService.getFileStat(user, filepath);
   }
 
   @Post('mkdir/:dirpath')
@@ -56,11 +47,7 @@ export class DriveController {
   @ApiOperation({ summary: '创建文件夹' })
   public async createDirectory(
       @User() user: UserEntity,
-      @Base64Param('dirpath') dirpath: string) {
-    const exists = await this.driveService.isFileExists(user, dirpath);
-    if(exists) {
-      throw new ConflictException('file already exists');
-    }
+      @Base64Param('dirpath', PathExistsPipe) dirpath: string) {
     return await this.driveService.createDirectory(user, dirpath);
   }
 
@@ -69,10 +56,7 @@ export class DriveController {
   public async downloadFile(
       @Res() response: Response,
       @User() user: UserEntity,
-      @Base64Param('filepath') filepath: string,) {
-    if(!await this.driveService.isFileExists(user, filepath)) {
-      throw new NotFoundException();
-    }
+      @Base64Param('filepath', PathExistsPipe) filepath: string,) {
     const fileStat = await this.driveService.getFileStat(user, filepath);
     if(fileStat.isDirectory()) {
       throw new ForbiddenException('暂不支持下载文件夹')
@@ -80,8 +64,8 @@ export class DriveController {
       const readStream = await this.driveService.downloadFile(user, filepath);
       response.setHeader('Content-Type', fileStat.mimeType);
       response.setHeader('Content-Length', fileStat.size);
-      // response.setHeader('Content-Disposition', `attachment; filename="${ encodeURIComponent(fileStat.name) }"`);
-      response.setHeader('Content-Disposition', `inline; filename="${ encodeURIComponent(fileStat.name) }"`);
+      response.setHeader('Content-Disposition', `attachment; filename="${ encodeURIComponent(fileStat.name) }"`);
+      // response.setHeader('Content-Disposition', `inline; filename="${ encodeURIComponent(fileStat.name) }"`);
       readStream.pipe(response);
     }
   }
@@ -94,7 +78,7 @@ export class DriveController {
   @UseInterceptors(FilesInterceptor('file'))
   public async uploadFiles(
       @User() user: UserEntity,
-      @Base64Param('destination') destination: string,
+      @Base64Param('destination', PathExistsPipe) destination: string,
       @UploadedFiles() files: Array<MulterFile>) {
     return await this.driveService.uploadFiles(user, destination, files);
   }
@@ -103,13 +87,9 @@ export class DriveController {
   @ApiOperation({ summary: '删除文件，直接从硬盘删除' })
   public async deleteFile(
       @User() user: UserEntity,
-      @Base64Param('filename') filename: string,
+      @Base64Param('filename', PathExistsPipe) filename: string,
       @Query('recursive') recursive: boolean = false) {
-    if(await this.driveService.isFileExists(user, filename)) {
-      return await this.driveService.deleteFile(user, filename, recursive);
-    } else {
-      throw new NotFoundException(`file (${ filename }) not exists`);
-    }
+    return await this.driveService.deleteFile(user, filename, recursive);
   }
 
   @Post('delete-multiple')
@@ -125,10 +105,7 @@ export class DriveController {
   @ApiOperation({ summary: '移除文件，移动文件到回收站' })
   public async removeFile(
       @User() user: UserEntity,
-      @Base64Param('filename') filename: string,) {
-    if(!await this.driveService.isFileExists(user, filename)) {
-      throw new NotFoundException(`file (${ filename }) not exists`);
-    }
+      @Base64Param('filename', PathExistsPipe) filename: string,) {
     return this.driveService.removeFile(user, filename);
   }
 

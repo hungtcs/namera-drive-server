@@ -33,8 +33,4 @@ export class FileStat {
     return this.type === FileType.DIRECTORY;
   }
 
-  public isSymbolicLink() {
-    return this.type === FileType.SYMBOLIC_LINK;
-  }
-
 }

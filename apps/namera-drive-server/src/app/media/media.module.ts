@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MediaController } from './media.controller';
-import { StorageEngineModule } from '@storage-engine';
+import { StorageModule } from 'src/app/storage/public_api';
 
 @Module({
   imports: [
-    StorageEngineModule,
+    StorageModule,
   ],
   controllers: [
     MediaController,

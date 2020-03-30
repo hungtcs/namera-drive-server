@@ -7,7 +7,7 @@
   "compilerOptions": {
     "assets": [
       {
-        "include": "assets/config.yaml",
+        "include": "assets/**/*",
         "watchAssets": true
       }
     ],
@@ -26,7 +26,7 @@
       "compilerOptions": {
         "assets": [
           {
-            "include": "assets/config.yaml",
+            "include": "assets/**/*",
             "watchAssets": true
           }
         ],

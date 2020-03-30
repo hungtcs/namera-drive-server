@@ -4,11 +4,11 @@ import { UserService } from './user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserController } from './user.controller';
 import { UserProfileEntity } from './user-profile.entity';
-import { StorageEngineModule } from '@storage-engine';
+import { StorageModule } from 'src/app/storage/public_api';
 
 @Module({
   imports: [
-    StorageEngineModule,
+    StorageModule,
     TypeOrmModule.forFeature([
       UserEntity,
       UserProfileEntity,

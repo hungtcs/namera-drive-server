@@ -10,6 +10,7 @@ import { LoggerOptions } from 'typeorm/logger/LoggerOptions';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { AllExceptionsFilter } from '@shared';
+import { QueuesModule } from './queues/queues.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AllExceptionsFilter } from '@shared';
     DriveModule,
     MediaModule,
     LoggerModule,
+    QueuesModule,
     ConfigModule.forRoot({
       load: [config],
       isGlobal: true,

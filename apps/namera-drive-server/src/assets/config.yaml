@@ -13,11 +13,7 @@ typeorm:
   synchronize: true
 
 storage:
-  engine:
-    type: local
-    root: /home/hungtcs/Temp/NameraDriveRoot
-    # type: minio
-    # username: minio
-    # password: minio
+  root: /home/hungtcs/Temp/NameraDriveRoot
   trashPath: .namera/trash
   uploadPath: .namera/upload
+  thumbnailsPath: .namera/thumbnails
