@@ -51,6 +51,14 @@ export class DriveController {
     return await this.driveService.createDirectory(user, dirpath);
   }
 
+  @Put('move/:sourcepath/:targetpath')
+  public async moveFile(
+      @User() user: UserEntity,
+      @Base64Param('sourcepath', PathExistsPipe) sourcepath: string,
+      @Base64Param('targetpath') targetpath: string) {
+    return await this.driveService.moveFile(user, sourcepath, targetpath);
+  }
+
   @Get('download/:filepath')
   @ApiOperation({ summary: '下载文件' })
   public async downloadFile(

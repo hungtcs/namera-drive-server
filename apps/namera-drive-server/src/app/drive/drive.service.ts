@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { StorageOptions } from 'src/config';
 import { LocalStorage, FileStat } from '@storage';
 import { classToPlain, plainToClass } from 'class-transformer';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { FileUtils, StreamUtils, MulterFile } from '@shared';
 import { ThumbnailService } from '../queues/thumbnail.service';
 import { async } from 'rxjs/internal/scheduler/async';
@@ -34,6 +34,13 @@ export class DriveService {
   public async createDirectory(user: UserEntity, dirpath: string): Promise<FileStat> {
     const stat = await this.localStorage.mkdir(user, dirpath, false);
     return stat;
+  }
+
+  public async moveFile(user: UserEntity, sourcepath: string, targetpath: string) {
+    if(await this.localStorage.exists(user, targetpath)) {
+      throw new ConflictException(`target(${ targetpath }) exists`);
+    }
+    return await this.localStorage.moveFile(user, sourcepath, targetpath);
   }
 
   public async downloadFile(user: UserEntity, filepath: string): Promise<fs.ReadStream> {
