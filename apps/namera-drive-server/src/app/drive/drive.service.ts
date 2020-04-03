@@ -32,6 +32,9 @@ export class DriveService {
   }
 
   public async createDirectory(user: UserEntity, dirpath: string): Promise<FileStat> {
+    if(await this.localStorage.exists(user, dirpath)) {
+      throw new ConflictException(`dir(${ dirpath }) exists`);
+    }
     const stat = await this.localStorage.mkdir(user, dirpath, false);
     return stat;
   }
@@ -55,7 +58,9 @@ export class DriveService {
         }),
       ).then(files => {
         files.forEach(file => {
-          if(/image\/(png|jpeg|gif)/.test(file.mimeType)) {
+          if(/image\/*/.test(file.mimeType)) {
+            this.thumbnailService.addJob(user, file);
+          } else if(/video\/*/.test(file.mimeType)) {
             this.thumbnailService.addJob(user, file);
           }
         });

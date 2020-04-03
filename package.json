@@ -1,10 +1,10 @@
 {
   "name": "namera-drive-server",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "A simple cloud drive, stored directly in the local file system",
+  "author": "鸿则<hungtcs@163.com>",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
@@ -19,6 +19,9 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./apps/namera-drive-server/test/jest-e2e.json"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
   },
   "dependencies": {
     "@nestjs/bull": "^0.1.0",

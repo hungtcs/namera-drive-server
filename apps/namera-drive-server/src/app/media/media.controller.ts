@@ -74,7 +74,14 @@ export class MediaController {
     const { thumbnailsPath } = this.config.get<StorageOptions>('storage');
     const thumbnailFilePath = path.join(thumbnailsPath, `${ md5(filepath) }.png`);
     if(!await this.storage.exists(user, thumbnailFilePath)) {
-      response.sendFile(path.join(__dirname, 'assets/thumbnails/default.png'));
+      const stat = await this.storage.stat(user, filepath);
+      if(/image\/*/.test(stat.mimeType)) {
+        response.sendFile(path.join(__dirname, 'assets/thumbnails/default-image.png'));
+      } else if(/video\/*/.test(stat.mimeType)) {
+        response.sendFile(path.join(__dirname, 'assets/thumbnails/default-video.png'));
+      } else {
+        response.sendFile(path.join(__dirname, 'assets/thumbnails/default-unknown.png'));
+      }
     } else {
       const stat = await this.storage.stat(user, thumbnailFilePath);
       const stream = await this.storage.readFile(user, thumbnailFilePath);

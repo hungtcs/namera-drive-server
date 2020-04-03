@@ -47,7 +47,7 @@ export class DriveController {
   @ApiOperation({ summary: '创建文件夹' })
   public async createDirectory(
       @User() user: UserEntity,
-      @Base64Param('dirpath', PathExistsPipe) dirpath: string) {
+      @Base64Param('dirpath') dirpath: string) {
     return await this.driveService.createDirectory(user, dirpath);
   }
 
