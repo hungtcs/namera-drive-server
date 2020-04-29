@@ -5,6 +5,11 @@ import { plainToClass } from 'class-transformer';
 import { JwtModuleOptions } from '@nestjs/jwt';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
+export interface RedisOptions {
+  host: string;
+  port: number;
+}
+
 export interface StorageOptions {
   root: string;
   trashPath: string;
@@ -14,6 +19,7 @@ export interface StorageOptions {
 
 export class Config {
   jwt: JwtModuleOptions;
+  redis: RedisOptions;
   storage: StorageOptions;
   typeorm: TypeOrmModuleOptions;
 }
